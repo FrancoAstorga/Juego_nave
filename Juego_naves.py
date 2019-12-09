@@ -8,9 +8,12 @@ ventana_x=1024
 ventana_y=576
 j=0
 aleatorio=0
+aleatorio_2=0
+aleatorio_3=0
 tamaño_boton=(200,40)
 espacio=0
 lista_rectangulos=[]
+espacio_reglas=0
 
 
 #colores
@@ -25,16 +28,16 @@ gris=(125,127,125)
 
 #Jugando-------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------
-def MoverMouse(x,y):
-	imagen_mouse=pygame.image.load("imagenes/Apocalypse Cursor.png")
-	ventana.blit(imagen_mouse,(x,y))
+def moverNave(x,y):
+	imagen_nave=pygame.image.load("imagenes/nave.png")
+	ventana.blit(imagen_nave,(x,y))
 
 def Fondo():
 	pygame.mouse.set_visible(0)
 	fondo=pygame.image.load("imagenes/Fondo_estrellas.jpg")
 	ventana.blit(fondo,(0,0))
 
-def Meteoritos(x,y,demora):
+def Meteoritos(y,demora):
 	global j,aleatorio
 	i=0
 	meteorito=pygame.Rect(0,0,100,100)
@@ -83,7 +86,11 @@ def Cambio_color_boton(lista):
 
 		if Hubo_Colision(lista[i])==True:
 			#Si cambia de color , vemos en que rectangulo esta para poenrle el texto
-			Boton(tamaño_boton,gris,lista_aux[i],20,i)	
+			Boton(tamaño_boton,gris,lista_aux[i],20,i)
+			#Si hubo click se pone en uno
+			if pygame.mouse.get_pressed()[0]==1:
+				if i==1:
+					Reglas()
 		else:
 			#Sino colisiona siguen igual
 			if i==0:
@@ -98,6 +105,26 @@ def Cambio_color_boton(lista):
 
 		
 		i=i+1
+
+
+
+def Reglas():
+	while True:
+
+		for evento in pygame.event.get():# recorro la lista de eventos que tiene pygame
+			if evento.type == QUIT: # si evento que ocurrio es del tipo QUIT 
+				pygame.quit() # detengo todos los módulos de pygame
+				sys.exit()
+
+		ventana.fill(blanco)
+
+		Colocar_Texto(10,0,"1-Si te tocan los rectangulos moris bro",20,naranja)
+		Colocar_Texto(10,33,"2-Tenes 3 vidas",20,naranja)
+		Colocar_Texto(10,66,"3-Si llegas a los 1000m ganas",20,naranja)
+
+
+
+		pygame.display.update()
 			
 #-------------------------------------------------------------------------------------------------------------------
 #Logica#------------------------------------------------------------------------------------------------------------
@@ -109,15 +136,62 @@ def Hubo_Colision(rectangulo):
 	if rectangulo_colision.colliderect(rectangulo):
 		bandera=True 
 
-	return bandera	
+	return bandera
 
+def Colocar_imagen(x,y,ruta):	
+	imagen_aux=pygame.image.load(ruta)
+	ventana.blit(imagen_aux,(x,y))
 
-
+def Colocar_Texto(x,y,texto,tamFuente,color):
+	fuente_aux=pygame.font.SysFont("Comic Sans MS",tamFuente)
+	texto=fuente_aux.render(texto,0,color)
+	ventana.blit(texto,(x,y))
 
 #----------------------------------------------------------------------------------------------------------
 #Menu principal#------------------------------------------------------------------------------------------------------
+
+def LLuvia_estrellas(y,demora):
+	global j,aleatorio_2,aleatorio_3
+	i=0
+	multicolor=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+	#cae de lugares aleatorios y elegimos la cantidad de estrellas
+	estrella=pygame.Rect(0,0,6,45)
+	estrella_2=pygame.Rect(0,0,6,45)
+	
+	#Efecto de caida de rectangulos
+	while i<demora:
+		aux=estrella.move(aleatorio_2,j)
+		pygame.draw.rect(ventana,multicolor,aux)
+		if j==y:#Cuando llega al final vuelve al principio
+			j=0
+			aleatorio_2=random.randint(0,1024)
+		j=j+1
+
+		i=i+1
+
+	while i<demora+20:
+		aux_2=estrella_2.move(aleatorio_3,j)
+		pygame.draw.rect(ventana,multicolor,aux_2)
+		if j==y:#Cuando llega al final vuelve al principio
+			j=0
+			aleatorio_3=random.randint(0,1024)
+		j=j+1
+
+		i=i+1
+	
+
+
+
+
+def Titulo():
+	multicolor=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+	fuente_letra=pygame.font.SysFont("Comic Sans MS",50)
+	texto=fuente_letra.render("Battle Rows",0,multicolor)
+	textoRect=texto.get_rect()
+	textoRect.center=(ventana_x/2,30)
+	ventana.blit(texto,textoRect)
+
 def Menu():
-	ventana.fill(negro)	
 	#Configuracion botones
 	Definir_espaciado(10)
 	
@@ -125,42 +199,62 @@ def Menu():
 	lista_rectangulos.append(Boton(tamaño_boton,naranja,"Reglas",20,1))
 	lista_rectangulos.append(Boton(tamaño_boton,rojo,"Salir",20,2))
 	
+	i=0
+	bandera_Imagen=False
 	#-----------------------------------------------------------------------------------------------------------------------------------
 	while True:
 
 		for evento in pygame.event.get():# recorro la lista de eventos que tiene pygame
 			if evento.type == QUIT: # si evento que ocurrio es del tipo QUIT 
 				pygame.quit() # detengo todos los módulos de pygame
-				sys.exit() # cerramos la ventana
+				sys.exit() # cerramos la ventana	
 
-	#Colision----------------------------------------------------------------------------------------------
+		ventana.fill(negro)
+		#Titulo
+		Titulo()
+		#Imagenes-----------------------------------------------------------------------------------------
+		Colocar_imagen(800,320,"imagenes/alien_1.jpg")
+		#Movimiento de imagen
+		Colocar_imagen(i,70,"imagenes/alien_2.png")
+		#Movimiento de izquierda a derecha de la nave--------------------------------------------------------
+		if i<=ventana_x-130 and bandera_Imagen==False:
+			i=i+2
+			if i==ventana_x-130:
+				bandera_Imagen=True
+		if i>=0 and bandera_Imagen==True:
+			i=i-2	
+			if i==0:
+				bandera_Imagen=False
+		#------------------------------------------------------------------------------------------------------		
+		#Colision----------------------------------------------------------------------------------------------
 		Cambio_color_boton(lista_rectangulos)
+		#Con numero grandes va muy rapido
+		LLuvia_estrellas(ventana_y,10)
+		
 
 		pygame.display.update()          
 
 
-
-#Inicio--------------------------------------------------------------------------------------------------------------
+#Inicio/Main--------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------
 pygame.init()
 
 ventana = pygame.display.set_mode((ventana_x,ventana_y)) # creo un objeto ventana con sus medidas
 pygame.display.set_caption("Battle Rows") # pongo un titulo o mensaj
 
+#FUNCIONES--------------------------------------------------
+Menu()
 
-while True: # bucle infinito
 
-    #MOVIMIENTO NAVE---------------------------------------------
-    posX,posY=pygame.mouse.get_pos() # tomo las coodenadas (x,y) del mouse 
 
-    #FUNCIONES--------------------------------------------------
-    Menu()
-    
-    """
-    Fondo()
-    moverNave(posX-23,posY-15)
-    Meteoritos(ventana_x,ventana_y,160)
-	"""
 
-    pygame.display.update() # la ventana se va a estar actualizando
+"""
+#MOVIMIENTO NAVE---------------------------------------------
+posX,posY=pygame.mouse.get_pos() # tomo las coodenadas (x,y) del mouse
+moverNave(posX-23,posY-15)
 
+
+Fondo()
+moverNave(posX-23,posY-15)
+Meteoritos(ventana_x,ventana_y,160)
+"""
