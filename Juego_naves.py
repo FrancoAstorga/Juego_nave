@@ -25,6 +25,9 @@ aleatorioY_2=100
 aleatorioX_3=100
 aleatorioY_3=100
 color_meteorito=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+cont=0
+Tiempo=0
+bandera_colision=False
 
 #colores
 blanco=(255,255,255)
@@ -41,6 +44,11 @@ gris=(125,127,125)
 def moverNave(x,y):
 	imagen_nave=pygame.image.load("imagenes/nave.png")
 	ventana.blit(imagen_nave,(x,y))
+	#Dibujamos un cuadrado en el mouse de las dimensiones de la imagen
+	rectangulo_colision=pygame.Rect(0,0,imagen_nave.get_size()[0],imagen_nave.get_size()[1])
+	rectangulo_colision.left,rectangulo_colision.top = pygame.mouse.get_pos()[0]-22,pygame.mouse.get_pos()[1]-14
+
+	return rectangulo_colision
 
 def Fondo():
 	pygame.mouse.set_visible(0)
@@ -71,16 +79,13 @@ def Meteoritos(y,demora):
 			j=j+1	
 		i=i+1
 
-def MeteoritosFacil(y,demora,velocidad):
-	global j,aleatorio_meteorito,aleatorio_meteorito2,aleatorio_meteorito3,color_meteorito,aleatorioX_1,aleatorioY_1,aleatorioX_2,aleatorioY_2,aleatorioX_3,aleatorioY_3
-
-
+def MeteoritosFacil(y,demora,velocidad,rectangulo):
+	global j,aleatorio_meteorito,aleatorio_meteorito2,aleatorio_meteorito3,color_meteorito,aleatorioX_1,aleatorioY_1,aleatorioX_2,aleatorioY_2,aleatorioX_3,aleatorioY_3,cont,Tiempo,bandera_colision
+	lista_meteoritos=[0,0,0]
 	#Son 3 meteoritos
 	meteorito=pygame.Rect(10,0,aleatorioX_1,aleatorioY_1)
 	meteorito2=pygame.Rect(350,0,aleatorioX_2,aleatorioY_2)
 	meteorito3=pygame.Rect(690,0,aleatorioX_3,aleatorioY_3)
-
-	
 	
 	#Primer meteorito------------------------------------				
 	i=0
@@ -88,6 +93,33 @@ def MeteoritosFacil(y,demora,velocidad):
 		aux=meteorito.move(aleatorio_meteorito,j)
 		aux2=meteorito2.move(aleatorio_meteorito2,j)
 		aux3=meteorito3.move(aleatorio_meteorito3,j)
+		lista_meteoritos[0]=aux
+		lista_meteoritos[1]=aux2
+		lista_meteoritos[2]=aux3
+
+
+
+		if Colision_meteoritos(rectangulo,lista_meteoritos)==True:
+			if cont<2 and bandera_colision==False:
+				cont=cont+1
+		#Cada cont es una vida que vas perdiendo
+		
+			
+		
+
+		if cont==0:
+			Colocar_imagen(5,3,"imagenes/Corazones.png")
+		if cont==1:
+			Colocar_imagen(5,3,"imagenes/Corazones_2.png")
+			Tiempo = pygame.time.get_ticks()/1000
+			bandera_colision=True
+			if Tiempo>=8:
+				bandera_colision=False
+				Tiempo=0
+		if cont==2:
+			Colocar_imagen(5,3,"imagenes/Corazones_3.png")
+			Tiempo = pygame.time.get_ticks()/1000
+			
 
 		pygame.draw.rect(ventana,color_meteorito,aux)
 		pygame.draw.rect(ventana,color_meteorito,aux2)
@@ -113,6 +145,7 @@ def MeteoritosFacil(y,demora,velocidad):
 		if i==demora-1:
 			j=j+velocidad		
 		i=i+1
+	
 
 #Botones------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------
@@ -171,11 +204,24 @@ def Cambio_color_boton(lista):
 		
 		i=i+1
 
+
+def Colision_meteoritos(rectangulo,lista):
+	i=0
+	bandera=False
+	for i in lista:
+		if rectangulo.colliderect(i):
+			bandera=True
+
+	return bandera		
+				
+
+
 #Opciones del menu-----------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------
 def Iniciar():
 
-
+	rectanguloNave=0
+	pygame.mouse.set_pos(ventana_x/2,540)
 	while True: # bucle infinito
 
 		for evento in pygame.event.get():# recorro la lista de eventos que tiene pygame
@@ -187,12 +233,21 @@ def Iniciar():
 		posX,posY=pygame.mouse.get_pos() # tomo las coodenadas (x,y), solo permite tomar la imagen desde la esquina superior izquierda
 
 		Fondo()
-		moverNave(posX-23,posY-15)
+		rectanguloNave=moverNave(posX-23,posY-15)
 
-		MeteoritosFacil(ventana_y,10,5)
+	
+		
+		MeteoritosFacil(ventana_y,10,14,rectanguloNave)
 
-		Contador_ganar(500)
+		Contador_ganar(1000)
+		
+		#Inmunidad en pantalla
+		if Tiempo>=1 and Tiempo<6:
+			Colocar_Texto(450,20,"Inmunity: "+str(Tiempo),20,verde)
+		if Tiempo>=6:
+			Colocar_Texto(450,20,"Inmunity: "+str(Tiempo),20,rojo)
 
+		
 		pygame.display.update() # la ventana se va a estar actualizando
 
 
